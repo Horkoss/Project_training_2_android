@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TextInputEditText;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,6 +22,7 @@ import com.keycam.R;
 import com.keycam.activities.HomeActivity;
 import com.keycam.models.UserModel;
 import com.keycam.network.ApiEndPointInterface;
+import com.keycam.network.ApiError;
 import com.keycam.network.RequestFactory;
 
 import org.parceler.Parcels;
@@ -130,16 +132,17 @@ public class LoginFragment extends Fragment {
     private void parseResponse(Response<UserModel> response){
         int statusCode = response.code();
 
-        if (statusCode == 200 && response.body().getSuccess()) { // Success
+        Log.d("STATUS CODE", String.valueOf(statusCode));
+        if (statusCode == 200) { // Success
             Intent intent = new Intent(getActivity(), HomeActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
             intent.putExtra("user", Parcels.wrap(response.body()));
             startActivity(intent);
             getActivity().finish();
         }
-        else if (statusCode >= 400){
-            Toast.makeText(getActivity(), response.body().getMessage(), Toast.LENGTH_SHORT).show();
-        }
+        else if (statusCode >= 300 && statusCode < 500){
+            ApiError apiError = RequestFactory.parseError(response);
+            Toast.makeText(getActivity(), apiError.getMessage(), Toast.LENGTH_SHORT).show();        }
         else
             Toast.makeText(getActivity(), "Sign in failed, try again later", Toast.LENGTH_SHORT).show();
         hideProgressBar();

@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TextInputEditText;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,6 +16,7 @@ import com.google.gson.JsonObject;
 import com.keycam.R;
 import com.keycam.models.UserModel;
 import com.keycam.network.ApiEndPointInterface;
+import com.keycam.network.ApiError;
 import com.keycam.network.RequestFactory;
 
 import butterknife.BindView;
@@ -107,13 +109,15 @@ public class CreateAccountFragment extends Fragment {
     private void parseResponse(Response<UserModel> response){
         int statusCode = response.code();
 
+        Log.d("STATUS CODE", String.valueOf(statusCode));
         if (statusCode == 201) { // Success
             getActivity().getSupportFragmentManager().popBackStack();
             Toast.makeText(getActivity(), "Account created", Toast.LENGTH_SHORT).show();
-        } else if (statusCode == 200 || statusCode >= 300 && statusCode < 500){
-            Toast.makeText(getActivity(), response.body().getMessage(), Toast.LENGTH_SHORT).show();
+        } else if (statusCode >= 300 && statusCode < 500){
+            ApiError apiError = RequestFactory.parseError(response);
+            Toast.makeText(getActivity(), apiError.getMessage(), Toast.LENGTH_SHORT).show();
         } else
-            Toast.makeText(getActivity(), "Please try again later", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getActivity(), "Sign up failed, please try again later", Toast.LENGTH_SHORT).show();
         hideProgressBar();
     }
 
