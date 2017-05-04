@@ -99,6 +99,7 @@ Full code [here](https://github.com/Horkoss/Project_training_2_android/blob/mast
 ## List of functionnality
 
 :white_check_mark: Graphics
+
 :white_check_mark: Connection 
 :white_check_mark: Register 
 :x: Flash
