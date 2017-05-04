@@ -101,10 +101,15 @@ Full code [here](https://github.com/Horkoss/Project_training_2_android/blob/mast
 :white_check_mark: Graphics
 
 :white_check_mark: Connection 
+
 :white_check_mark: Register 
+
 :x: Flash
+
 :x: Stream video 
+
 :x: Sound 
+
 :x: Music 
 
 ## Team & Credits
