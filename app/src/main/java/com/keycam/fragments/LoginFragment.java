@@ -65,6 +65,7 @@ public class LoginFragment extends Fragment {
 
     @OnClick(R.id.sign_in)
     public void signIn(){
+        hideKeyboard();
         ApiEndPointInterface apiRequest = RequestFactory.createApiCallRequest();
         JsonObject jsonObject = createJsonFromInfos();
         storeEmail();
@@ -85,16 +86,15 @@ public class LoginFragment extends Fragment {
     }
 
     /**
-     * Show the CreateAccountFragment with animation
+     * Show the RegisterFragment with animation
      */
     @OnClick(R.id.create_account)
     public void loadCreateAccountFragment(){
-        InputMethodManager imm = (InputMethodManager)getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.hideSoftInputFromWindow(getActivity().getWindow().getDecorView().getWindowToken(), 0);
-        CreateAccountFragment createAccountFragment = new CreateAccountFragment();
+        hideKeyboard();
+        RegisterFragment registerFragment = new RegisterFragment();
         getActivity().getSupportFragmentManager().beginTransaction().setCustomAnimations(R.anim.slide_in_right,
                 R.anim.slide_out_left, android.R.anim.slide_in_left, android.R.anim.slide_out_right)
-                .replace(R.id.login_fragment_container, createAccountFragment, CreateAccountFragment.TAG)
+                .replace(R.id.login_fragment_container, registerFragment, RegisterFragment.TAG)
                 .addToBackStack(null).commit();
     }
 
@@ -161,6 +161,11 @@ public class LoginFragment extends Fragment {
         SharedPreferences sharedPreferences = getActivity().getSharedPreferences("shared", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putString("email", mEmail.getText().toString()).apply();
+    }
+
+    private void hideKeyboard() {
+        InputMethodManager imm = (InputMethodManager)getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(getActivity().getWindow().getDecorView().getWindowToken(), 0);
     }
 
     @Override

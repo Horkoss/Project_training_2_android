@@ -1,33 +1,39 @@
 package com.keycam.activities;
 
-import android.support.v4.app.FragmentTransaction;
-import android.support.v7.app.AppCompatActivity;
+import android.content.Intent;
 import android.os.Bundle;
-import android.widget.FrameLayout;
+import android.support.annotation.Nullable;
+import android.support.v7.app.AppCompatActivity;
 
 import com.keycam.R;
-import com.keycam.fragments.LoginFragment;
 
-import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
+
 
 public class MainActivity extends AppCompatActivity {
 
-    @BindView(R.id.login_fragment_container)
-    FrameLayout loginFragmentContainer;
+    @OnClick(R.id.baby)
+    public void baby(){
+        Intent intent = new Intent(this, LoginRegisterActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        startActivity(intent);
+        finish();
+    }
+
+    @OnClick(R.id.keeper)
+    public void keeper(){
+        Intent intent = new Intent(this, KeeperActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        startActivity(intent);
+        finish();
+    }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_activity);
 
         ButterKnife.bind(this);
-        loadLoginFragment();
-    }
-
-    private void loadLoginFragment(){
-        FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
-        LoginFragment loginFragment = new LoginFragment();
-        fragmentTransaction.replace(R.id.login_fragment_container, loginFragment, LoginFragment.TAG).commit();
     }
 }

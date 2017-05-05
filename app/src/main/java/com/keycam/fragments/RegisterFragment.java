@@ -32,8 +32,8 @@ import static android.view.View.GONE;
 /**
  * Show a form that let the user to create an account
  */
-public class CreateAccountFragment extends Fragment {
-    public static final String TAG = CreateAccountFragment.class.getName();
+public class RegisterFragment extends Fragment {
+    public static final String TAG = RegisterFragment.class.getName();
 
     private Unbinder mUnbinder;
 
@@ -62,7 +62,7 @@ public class CreateAccountFragment extends Fragment {
             ApiEndPointInterface apiRequest = RequestFactory.createApiCallRequest();
             JsonObject jsonObject = createJsonFromInfos();
             showProgressBar();
-            Call<UserModel> call = apiRequest.createAccount(jsonObject);
+            Call<UserModel> call = apiRequest.register(jsonObject);
             call.enqueue(new Callback<UserModel>() {
                 @Override
                 public void onResponse(Call<UserModel> call, Response<UserModel> response) {

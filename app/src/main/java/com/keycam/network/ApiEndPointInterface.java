@@ -13,5 +13,5 @@ public interface ApiEndPointInterface {
     Call<UserModel> login(@Body JsonObject jsonObject);
 
     @POST("register")
-    Call<UserModel> createAccount(@Body JsonObject jsonObject);
+    Call<UserModel> register(@Body JsonObject jsonObject);
 }
