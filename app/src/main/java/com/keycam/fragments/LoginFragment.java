@@ -20,6 +20,7 @@ import android.widget.Toast;
 import com.google.gson.JsonObject;
 import com.keycam.R;
 import com.keycam.activities.HomeActivity;
+import com.keycam.activities.KeeperActivity;
 import com.keycam.models.UserModel;
 import com.keycam.network.ApiEndPointInterface;
 import com.keycam.network.ApiError;
@@ -49,8 +50,8 @@ public class LoginFragment extends Fragment {
     @BindView(R.id.password)
     TextInputEditText mPassword;
 
-    @BindView(R.id.sign_in)
-    Button mSignIn;
+    @BindView(R.id.sign_in_baby)
+    Button mSignInBaby;
 
     @BindView(R.id.create_account)
     Button mCreateAccount;
@@ -63,8 +64,8 @@ public class LoginFragment extends Fragment {
 
     private Unbinder mUnbinder;
 
-    @OnClick(R.id.sign_in)
-    public void signIn(){
+    @OnClick(R.id.sign_in_baby)
+    public void signInBaby(){
         hideKeyboard();
         ApiEndPointInterface apiRequest = RequestFactory.createApiCallRequest();
         JsonObject jsonObject = createJsonFromInfos();
@@ -83,6 +84,14 @@ public class LoginFragment extends Fragment {
                 Toast.makeText(getActivity(), "Sign in failed, please check your network", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    @OnClick(R.id.sign_in_parent)
+    public void signInParent() {
+        Intent intent = new Intent(getActivity(), KeeperActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        startActivity(intent);
+        getActivity().finish();
     }
 
     /**

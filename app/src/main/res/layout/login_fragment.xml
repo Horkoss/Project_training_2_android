@@ -41,12 +41,22 @@
         android:orientation="vertical">
 
         <Button
-            android:id="@+id/sign_in"
+            android:id="@+id/sign_in_parent"
             style="@style/Base.Widget.AppCompat.Button.Colored"
             android:layout_width="match_parent"
             android:layout_height="55dp"
             android:layout_marginTop="16dp"
-            android:text="@string/sign_in"
+            android:text="@string/sign_in_parent"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/sign_in_baby"
+            style="@style/Base.Widget.AppCompat.Button.Colored"
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:layout_marginTop="16dp"
+            android:text="@string/sign_in_baby"
             android:textSize="16sp"
             android:textStyle="bold" />
 

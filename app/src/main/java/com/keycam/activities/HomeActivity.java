@@ -1,12 +1,14 @@
 package com.keycam.activities;
 
 import android.Manifest;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.hardware.Camera;
-import android.hardware.camera2.*;
+import android.os.Build;
 import android.os.Bundle;
+import android.speech.tts.TextToSpeech;
+import android.speech.tts.UtteranceProgressListener;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -23,6 +25,8 @@ import org.parceler.Parcels;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.HashMap;
+import java.util.Locale;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -30,12 +34,14 @@ import io.socket.client.IO;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
 
-public class HomeActivity extends AppCompatActivity{
+public class HomeActivity extends AppCompatActivity {
     private UserModel userModel;
     private Socket socket;
     static final int REQUEST_IMAGE_CAPTURE = 1;
     private Camera camera;
     private Camera.PictureCallback pictureCallback;
+    private TextToSpeech textToSpeech;
+    private int currentCam;
 
     @BindView(R.id.surface)
     SurfaceView surfaceView;
@@ -52,12 +58,11 @@ public class HomeActivity extends AppCompatActivity{
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putString("token", userModel.getToken()).apply();
 
-
         ActivityCompat.requestPermissions(this,
                 new String[]{Manifest.permission.CAMERA},
                 1);
 
-
+        initTextToSpeech();
         try {
             connectSocket();
         } catch (URISyntaxException e) {
@@ -76,16 +81,22 @@ public class HomeActivity extends AppCompatActivity{
             public void call(Object... args) {
                 //socket.emit("chat message", "toto");
                 try {
-                    dispatchTakePictureIntent();
+                    dispatchTakePictureIntent(Camera.CameraInfo.CAMERA_FACING_BACK);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
 
-        }).on("chat message", new Emitter.Listener() {
+        }).on("text", new Emitter.Listener() {
             @Override
             public void call(Object... args) {
-                Log.d("CHAT MESSAGE", (String)args[0]);
+                HashMap<String, String> map = new HashMap<>();
+                map.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID,"messageID");
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    textToSpeech.speak((String) args[0], TextToSpeech.QUEUE_FLUSH, null, "messageID");
+                } else {
+                    textToSpeech.speak((String) args[0], TextToSpeech.QUEUE_FLUSH, map);
+                }
             }
 
         }).on("picture", new Emitter.Listener() {
@@ -93,30 +104,84 @@ public class HomeActivity extends AppCompatActivity{
             public void call(Object... args) {
                 camera.takePicture(null, null, pictureCallback);
             }
+        }).on("switch", new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                camera.stopPreview();
+                camera.release();
+                if(currentCam == Camera.CameraInfo.CAMERA_FACING_BACK){
+                    currentCam = Camera.CameraInfo.CAMERA_FACING_FRONT;
+                }
+                else {
+                    currentCam = Camera.CameraInfo.CAMERA_FACING_BACK;
+                }
+                Log.d("CAM BACK", String.valueOf(Camera.CameraInfo.CAMERA_FACING_BACK));
+                Log.d("CAM FRONT", String.valueOf(Camera.CameraInfo.CAMERA_FACING_FRONT));
+                Log.d("CAM NUMBER", String.valueOf(currentCam));
+                try {
+                    dispatchTakePictureIntent(currentCam);
+                    socket.emit("switch", "camera switched");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         });
         socket.connect();
     }
 
+    private void initTextToSpeech() {
+        textToSpeech = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    textToSpeech.setLanguage(Locale.forLanguageTag(Locale.getDefault().getDisplayLanguage()));
+                } else {
+                    textToSpeech.setLanguage(new Locale(Locale.getDefault().getDisplayLanguage()));
+                }
+                textToSpeech.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+                    @Override
+                    public void onStart(String s) {
+                    }
 
-    private void dispatchTakePictureIntent() throws IOException {
-        camera = Camera.open(0);
-        Camera.Parameters params = camera.getParameters();
-        params.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
-        camera.setParameters(params);
+                    @Override
+                    public void onDone(String s) {
+                        socket.emit("text", "message talked");
+                    }
+
+                    @Override
+                    public void onError(String s) {
+
+                    }
+                });
+            }
+        });
+
+    }
+
+    private void dispatchTakePictureIntent(int camNum) throws IOException {
+        currentCam = camNum;
+        camera = Camera.open(camNum);
+    //    Camera.Parameters params = camera.getParameters();
+    //    params.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
+    //    camera.setParameters(params);
         camera.setDisplayOrientation(90);
+
         // Install a SurfaceHolder.Callback so we get notified when the
         // underlying surface is created and destroyed.
         pictureCallback = new Camera.PictureCallback() {
-/*            @Override
-            public void onShutter() {
-                Log.d("LOLOOL", "LOLOOLOL");
-            }*/
 
             @Override
             public void onPictureTaken(byte[] bytes, Camera camera) {
                 JSONObject obj = new JSONObject();
                 try {
-                    obj.put("picture", bytes);
+                    BitmapFactory.Options options = new BitmapFactory.Options();
+                    options.inSampleSize = 15;  // downsample factor (16 pixels -> 1 pixel)
+
+                    Bitmap bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length, options);
+                    ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                    bmp.compress(Bitmap.CompressFormat.PNG, 50, stream);
+                    byte[] byteArray = stream.toByteArray();
+                    obj.put("picture", byteArray);
                     socket.emit("picture", obj);
                     camera.stopPreview();
                     camera.startPreview();
@@ -128,29 +193,7 @@ public class HomeActivity extends AppCompatActivity{
         SurfaceHolder mHolder = surfaceView.getHolder();
         camera.setPreviewDisplay(mHolder);
         camera.startPreview();
-        /*        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
-        }*/
     }
-
-/*    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            Bundle extras = data.getExtras();
-            Bitmap imageBitmap = (Bitmap) extras.get("data");
-            ByteArrayOutputStream stream = new ByteArrayOutputStream();
-            imageBitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
-            byte[] byteArray = stream.toByteArray();
-            JSONObject obj = new JSONObject();
-            try {
-                obj.put("picture", byteArray);
-                socket.emit("picture", obj);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        }
-    }*/
 
     @Override
     protected void onDestroy() {

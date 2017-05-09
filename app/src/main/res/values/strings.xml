@@ -5,8 +5,9 @@
     <!-- Strings related to Login / Create Account -->
     <string name="email">Email</string>
     <string name="password">Password</string>
-    <string name="sign_in">Sign in</string>
     <string name="create_account">Create new account</string>
     <string name="sign_up">Sign up</string>
+    <string name="sign_in_parent">Sign in as a parent</string>
+    <string name="sign_in_baby">Sign in as a baby</string>
 
 </resources>

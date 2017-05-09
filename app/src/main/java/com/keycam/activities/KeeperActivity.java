@@ -1,16 +1,12 @@
 package com.keycam.activities;
 
-import android.app.Activity;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
-import android.view.Window;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
-import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
-import android.widget.Toast;
 
 import com.keycam.R;
 
@@ -45,6 +41,6 @@ public class KeeperActivity extends AppCompatActivity {
             }
         });
 
-        webView.loadUrl("http://163.5.84.197:4444");
+        webView.loadUrl("http://10.0.1.6:2222");
     }
 }
