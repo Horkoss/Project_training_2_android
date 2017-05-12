@@ -85,6 +85,16 @@ public class SocketManager {
             public void call(Object... args) {
                 mActivity.sendBatteryStatus();
             }
+        }).on("light", new Emitter.Listener() {
+                    @Override
+                    public void call(Object... args) {
+                        mActivity.controlFlashLight();
+                    }
+        }).on("mode", new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                mActivity.switchMode();
+            }
         });
     }
 
